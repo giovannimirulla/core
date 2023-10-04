@@ -412,7 +412,10 @@ class CheshireCat:
         final_output = {
             "error": False,
             "type": "chat",
-            "content": cat_message.get("output"),
+            "content": {
+                "text": cat_message.get("output"),
+                "sender": "bot"
+            },
             "why": {
                 "input": cat_message.get("input"),
                 "intermediate_steps": cat_message.get("intermediate_steps"),

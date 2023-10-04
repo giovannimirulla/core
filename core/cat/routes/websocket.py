@@ -46,6 +46,12 @@ class ConnectionManager:
         for connection in self.active_connections:
             await connection.send_json(message)
 
+    #broadcast all connections except mine
+    async def broadcast_except_me(self, message: str, websocket: WebSocket):
+        for connection in self.active_connections:
+            if connection != websocket:
+                await connection.send_json(message)
+
 
 manager = ConnectionManager()
 
@@ -55,13 +61,19 @@ async def receive_message(websocket: WebSocket, ccat: object):
     Continuously receive messages from the WebSocket and forward them to the `ccat` object for processing.
     """
     while True:
-        user_message = await websocket.receive_json()
+            # message received from specific user
+            user_message = await websocket.receive_json()
 
-        # Run the `ccat` object's method in a threadpool since it might be a CPU-bound operation.
-        cat_message = await run_in_threadpool(ccat, user_message)
+            print("user_message",user_message)
 
-        # Send the response message back to the user.
-        await manager.send_personal_message(cat_message, websocket)
+            await manager.broadcast_except_me( {'error': False, 'type': 'chat', 'content': {'text': user_message["text"],'sender': 'user'}},websocket)
+
+            # get response from the cat
+            cat_message = await run_in_threadpool(ccat, user_message)
+
+            # send output to specific user
+            print("cat_message",cat_message)
+            await manager.broadcast(cat_message)
 
 
 async def check_notification(websocket: WebSocket, ccat: object):

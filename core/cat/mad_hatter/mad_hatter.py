@@ -3,6 +3,7 @@ import json
 import time
 import shutil
 import os
+from typing import Dict
 
 from cat.log import log
 from cat.db import crud
@@ -113,9 +114,7 @@ class MadHatter:
             # if plugin is valid, keep a reference
             self.plugins[plugin.id] = plugin
         except Exception as e:
-            # Something happened while loading the plugin.
-            # Print the error and go on with the others.
-            log(str(e), "ERROR")
+            log(e, "WARNING") 
 
     # Load hooks and tools of the active plugins into MadHatter 
     def sync_hooks_and_tools(self):
@@ -213,19 +212,19 @@ class MadHatter:
 
     # activate / deactivate plugin
     def toggle_plugin(self, plugin_id):
+        log(f"toggle plugin {plugin_id}", "WARNING")
+
         if self.plugin_exists(plugin_id):
 
             plugin_is_active = plugin_id in self.active_plugins
 
             # update list of active plugins
             if plugin_is_active:
-                log(f"Toggle plugin {plugin_id}: Deactivate", "WARNING")
                 # Deactivate the plugin
                 self.plugins[plugin_id].deactivate()
                 # Remove the plugin from the list of active plugins
                 self.active_plugins.remove(plugin_id)
             else:
-                log(f"Toggle plugin {plugin_id}: Activate", "WARNING")
                 # Activate the plugin
                 self.plugins[plugin_id].activate()
                 # Ass the plugin in the list of active plugins

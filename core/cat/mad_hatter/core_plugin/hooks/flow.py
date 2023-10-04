@@ -5,7 +5,10 @@ Here is a collection of methods to hook into the Cat execution pipeline.
 """
 
 from cat.mad_hatter.decorators import hook
-
+import requests
+import urllib.parse
+import json
+import time
 
 # Called before cat bootstrap
 @hook(priority=0)
@@ -328,4 +331,62 @@ def before_cat_sends_message(message: dict, cat) -> dict:
 
     """
 
+    """input_text = message["content"]["text"]
+    print(input_text)
+    
+    start_index = input_text.find("'''") + 3
+    end_index = input_text.rfind("'''")
+
+    if start_index != -1 and end_index != -1:
+        extracted_text = input_text[start_index:end_index]
+        url = 'http://localhost:8888/api/service/python/exec/' + extracted_text
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            
+            if response.status_code == 200:
+                message["content"]["text"] = "Fatto! " + url"""
+    
+    jsonMessage = json.loads(message["content"]["text"])
+    message["content"]["text"] = jsonMessage["text"]
+
+    url = 'http://localhost:8888/api/service/polly/speakBlocking/' + urllib.parse.quote('"' +message["content"]["text"]+'"')
+    print(url)
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for 4xx and 5xx status codes
+
+        print("Request was successful.")
+        print(f"Response content: {response.text}")
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed with error: {e}")
+
+    if jsonMessage["code"] != None:
+        base_url = 'http://localhost:8888/api/service/python/exec/' 
+        
+        # Dividi la stringa in righe
+        lines = jsonMessage["code"].split('\n')
+
+        # Itera attraverso le righe e invia ciascuna riga con un ritardo
+        for line in lines:
+            # Costruisci l'URL completo con la riga come parametro
+            url = base_url + '"'+line.strip().split('#')[0].strip()+ '"'
+            print(url)
+    
+            # Invia una richiesta GET all'URL
+            response = requests.get(url)
+    
+            # Controlla la risposta (puoi gestire eventuali errori qui)
+            if response.status_code == 200:
+               print(f'Riga inviata con successo: {line}')
+            else:
+               print(f'Errore nell\'invio della riga: {line}')
+
+            # Aggiungi un ritardo di 0.1 secondi prima di inviare la riga successiva
+            time.sleep(0.1)
+
+
+
+   # message["content"]["text"] = "<img src='https://images.ctfassets.net/hrltx12pl8hq/3j5RylRv1ZdswxcBaMi0y7/b84fa97296bd2350db6ea194c0dce7db/Music_Icon.jpg'></img>"
     return message

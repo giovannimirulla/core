@@ -24,7 +24,7 @@ test_db.db
 admin
 
 # plugins are not tracked by git
-core/cat/plugins/*
+#core/cat/plugins/*
 # plugins readme can stay
 !core/cat/plugins/how-to-write-a-plugin.md
 

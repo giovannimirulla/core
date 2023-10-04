@@ -1,11 +1,12 @@
 import os
-import shutil
 import pytest
+import fnmatch
+import subprocess
+
 from inspect import isfunction
 
 from cat.mad_hatter.mad_hatter import Plugin
 from cat.mad_hatter.decorators import CatHook, CatTool
-
 
 mock_plugin_path = "tests/mocks/mock_plugin/"
 
@@ -13,7 +14,7 @@ mock_plugin_path = "tests/mocks/mock_plugin/"
 @pytest.fixture
 def plugin():
 
-    p = Plugin(mock_plugin_path, active=True)
+    p = Plugin(mock_plugin_path)
     
     yield p
     
@@ -25,7 +26,7 @@ def plugin():
 def test_create_plugin_wrong_folder():
 
     with pytest.raises(Exception) as e:
-        Plugin("/non/existent/folder", active=True)
+        Plugin("/non/existent/folder")
         
     assert f"Cannot create" in str(e.value)
 
@@ -36,14 +37,12 @@ def test_create_plugin_empty_folder():
     os.mkdir(path)
 
     with pytest.raises(Exception) as e:
-        Plugin(path, active=True)
+        Plugin(path)
         
     assert f"Cannot create" in str(e.value)
 
 
-def test_create_non_active_plugin():
-
-    plugin = Plugin(mock_plugin_path, active=False)
+def test_create_plugin(plugin):
 
     assert plugin.active == False
     
@@ -56,23 +55,22 @@ def test_create_non_active_plugin():
     assert plugin.manifest["name"] == "MockPlugin"
     assert "Description not found" in plugin.manifest["description"]
 
+    # Check if plugin requirement is installed
+    result = subprocess.run(['pip', 'list'], stdout=subprocess.PIPE)
+    result = result.stdout.decode()
+    assert fnmatch.fnmatch(result, "*pip-install-test*")
+
     # hooks and tools
     assert plugin.hooks == []
     assert plugin.tools == []
 
 
-def test_create_active_plugin(plugin):
-    
+def test_activate_plugin(plugin):
+
+    # activate it
+    plugin.activate()
+
     assert plugin.active == True
-    
-    assert plugin.path == mock_plugin_path
-    assert plugin.id == "mock_plugin"
-    
-    # manifest
-    assert type(plugin.manifest) == dict
-    assert plugin.manifest["id"] == plugin.id
-    assert plugin.manifest["name"] == "MockPlugin"
-    assert "Description not found" in plugin.manifest["description"]
 
     # hooks
     assert len(plugin.hooks) == 1
@@ -93,23 +91,10 @@ def test_create_active_plugin(plugin):
     assert isfunction(tool.func)
     assert tool.return_direct == True
 
-
-def test_activate_plugin():
-
-    # create non-active plugin
-    plugin = Plugin(mock_plugin_path, active=False)
-
-    # activate it
-    plugin.activate()
-
-    assert plugin.active == True
-    
-    # hooks and tools
-    assert len(plugin.hooks) == 1
-    assert len(plugin.tools) == 1
-
-
 def test_deactivate_plugin(plugin):
+
+    # The plugin is non active by default
+    plugin.activate()
 
     # deactivate it
     plugin.deactivate()
@@ -121,9 +106,9 @@ def test_deactivate_plugin(plugin):
     assert len(plugin.tools) == 0
 
 
-def test_get_settings_schema(plugin):
+def test_settings_schema(plugin):
 
-    settings_schema = plugin.get_settings_schema()
+    settings_schema = plugin.settings_schema()
     assert type(settings_schema) == dict
     assert settings_schema["properties"] == {}
     assert settings_schema["title"] == "BaseModel"

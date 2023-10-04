@@ -1,6 +1,7 @@
 from cat.mad_hatter.decorators import tool
 import requests
 import geocoder
+import pytz
 import datetime
 
 def map(weathercode):
@@ -38,15 +39,20 @@ def map(weathercode):
     return mappa_meteo.get(weathercode, "Descrizione non disponibile")
 
 def get_current_weather_code(data):
-    current_time = datetime.datetime.now().isoformat()  # Ottieni l'ora corrente nel formato ISO8601
-
-    # Cerca l'ora corrente nell'elenco delle ore fornite nel JSON
-    if current_time in data["hourly"]["time"]:
-        index = data["hourly"]["time"].index(current_time)
-        weather_code = data["hourly"]["weathercode"][index]
-        return weather_code
-    else:
-        return None
+    tz = pytz.timezone('Europe/Rome')
+    current_time = datetime.datetime.now(tz).isoformat()  # Ottieni l'ora corrente nel formato ISO8601
+    
+    # Cerca l'intervallo orario in cui rientra l'ora corrente
+    time_array = data["hourly"]["time"]
+    for i in range(len(time_array) - 1):
+        start_time = time_array[i]
+        end_time = time_array[i + 1]
+        if start_time <= current_time < end_time:
+            weather_code = data["hourly"]["weathercode"][i]
+            return weather_code
+    
+    # Se l'ora corrente non è compresa in nessun intervallo, restituisci None
+    return None
     
 def get_weather_forecast(latitude, longitude):
     url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&hourly=weathercode&timezone=Europe%2FLondon&forecast_days=1"
@@ -59,27 +65,30 @@ def get_weather_forecast(latitude, longitude):
             print("Risposta JSON:")
             print(weather_data)
             current_weather_code = get_current_weather_code(weather_data)
-            return map(current_weather_code)
+            if current_weather_code is not None:
+                return map(current_weather_code)
+            else:
+                return "Nessun dato meteo disponibile per l'ora corrente."
         else:
             return "Errore"
     except Exception as e:
         return "Errore"
 
 @tool()   
-def get_weather():
+def get_weather(query, cat):
     """
     When user asks you to "che tempo fa" always use this tool.
     
     """
     location = geocoder.ip('me')
-
+    print(location)
     # Verifica se la richiesta ha avuto successo
     if location.status == 'OK':
         latitude = location.latlng[0]
         longitude = location.latlng[1]
         print(f"Latitudine: {latitude}")
         print(f"Longitudine: {longitude}")
-        get_weather_forecast(latitude, longitude)
+        return get_weather_forecast(latitude, longitude)
     else:
         return "Non riesco a capire dove ci troviamo"
 

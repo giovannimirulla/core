@@ -325,7 +325,7 @@ def before_cat_sends_message(message: dict, cat) -> dict:
     jsonMessage = json.loads(message["content"]["text"])
     message["content"]["text"] = jsonMessage["text"]
 
-    url = 'http://localhost:8888/api/service/polly/speakBlocking/' + urllib.parse.quote('"' +message["content"]["text"]+'"')
+    url = 'http://host.docker.internal:8888/api/service/polly/speakBlocking/' + urllib.parse.quote('"' +message["content"]["text"]+'"')
     print(url)
     
     try:
@@ -338,7 +338,7 @@ def before_cat_sends_message(message: dict, cat) -> dict:
         print(f"Request failed with error: {e}")
 
     if jsonMessage["code"] != None:
-        base_url = 'http://localhost:8888/api/service/python/exec/' 
+        base_url = 'http://host.docker.internal:8888/api/service/python/exec/' 
         
         # Dividi la stringa in righe
         lines = jsonMessage["code"].split('\n')

@@ -2,7 +2,7 @@ const catChat = document.querySelector("#cat-chat")
 
 catChat.settings = {
     authKey: 'meow',
-    baseUrl: 'localhost',
+    baseUrl: window.location.hostname,
     port: '1865',
     ws: {
         onFailed: (error) => {

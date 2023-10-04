@@ -8,7 +8,7 @@ def canta(query, cat):
     When user asks you to "canta what is love" always use this tool.
     
     """
-    url = 'http://localhost:8888/api/service/python/execFile/music.py'
+    url = 'http://host.docker.internal:8888/api/service/python/execFile/%22C:/Users/Robot/Desktop/myrobotlab-1.1.1220/data/Python/python/music.py%22'
     print(url)
     
     try:

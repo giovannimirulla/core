@@ -49996,7 +49996,7 @@ const CE = (e) => {
         __name: "ChatWidget",
         props: {
             settings: {
-                default: () => ({ baseUrl: "localhost", dark: !1, why: !1, thinking: "Sto pensando...", placeholder: "Ask the Cheshire Cat...", primary: "", defaults: [], features: Object.values(e$), files: Object.values(Bm) }),
+                default: () => ({ baseUrl: window.location.hostname, dark: !1, why: !1, thinking: "Sto pensando...", placeholder: "Ask the Cheshire Cat...", primary: "", defaults: [], features: Object.values(e$), files: Object.values(Bm) }),
             },
         },
         emits: ["message", "upload", "notification"],

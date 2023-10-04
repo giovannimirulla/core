@@ -18,26 +18,16 @@ services:
       - CORE_USE_SECURE_PROTOCOLS=${CORE_USE_SECURE_PROTOCOLS:-}
       - API_KEY=${API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-WARNING}
+      - DEBUG=${DEBUG:-true}
     ports:
-      - ${CORE_PORT:-1865}:1865
+      - ${CORE_PORT:-1865}:80
     volumes:
       - ./core:/app
     command:
-      - uvicorn
-      - cat.main:cheshire_cat_api
-      - --host
-      - "0.0.0.0"
-      - --port
-      - "1865"
-      - --reload # take away in prod
-      - --reload-include
-      - "plugin.json"
-      - --reload-exclude # TODO: can't exclude the whole tests/ folder, so excluding files with test_ or mock_ in their name
-      - "*test_*.*"
-      - --reload-exclude
-      - "*mock_*.*"
+      - python
+      - "-m"
+      - "cat.main"
     restart: unless-stopped
-    network_mode: "host"
 
   cheshire-cat-vector-memory:
     image: qdrant/qdrant:v1.1.1
@@ -47,4 +37,3 @@ services:
     volumes:
       - ./long_term_memory/vector:/qdrant/storage
     restart: unless-stopped
-    network_mode: "host"

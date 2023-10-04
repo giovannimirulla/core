@@ -67,7 +67,10 @@ def get_weather_forecast(latitude, longitude):
 
 @tool()   
 def get_weather():
-    # Usa il modulo geocoder per ottenere le coordinate del posto corrente
+    """
+    When user asks you to "che tempo fa" always use this tool.
+    
+    """
     location = geocoder.ip('me')
 
     # Verifica se la richiesta ha avuto successo

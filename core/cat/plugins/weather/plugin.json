@@ -1,7 +1,7 @@
 {
-    "name": "Song What is love",
+    "name": "Weather",
     "version": "0.1",
-    "description": "Addesso può cantare 'What is love'",
+    "description": "Addesso può saper il meteo",
     "author_name": "Giovanni Mirulla",
-    "tags": "canta, what"
+    "tags": "meteo, tempo"
 }
